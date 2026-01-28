@@ -24,14 +24,14 @@ $pdo = DB::connection();
 // Create schema
 $schema = <<<SQL
 CREATE TABLE vehicles (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY,
     vehicle_number VARCHAR(20) NOT NULL UNIQUE,
     mapon_unit_id INTEGER,
     created_at TEXT
 );
 
 CREATE TABLE transactions (
-    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    id INTEGER PRIMARY KEY,
     vehicle_number VARCHAR(20) NOT NULL,
     card_number VARCHAR(50),
     transaction_date TEXT NOT NULL,
