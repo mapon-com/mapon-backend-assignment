@@ -2,15 +2,16 @@
 
 ## Overview
 
-You'll extend an existing fuel transaction API to add GPS enrichment from the Mapon telematics platform.
+You'll extend an existing fuel transaction API to add GPS enrichment from the Mapon telematics platform, and review the existing codebase for issues, patterns, and areas you'd improve.
 
 **Estimated time:** 1-2 hours, possibly quicker
 
 **What we're assessing:**
-- Code quality and consistency with existing patterns
-- Edge case handling - what happens when things go wrong?
 - Architectural thinking - how does this fit into the bigger picture?
-- Future vision - what would you improve or do differently?
+- Critical evaluation - can you identify issues and form opinions about existing code?
+- Edge case handling - what happens when things go wrong?
+- Code quality - is your implementation consistent with existing patterns?
+- Ownership mindset - how would you change the existing codebase, what would you update?
 
 ## Using AI/LLM Tools
 
@@ -39,36 +40,53 @@ php -S localhost:8000 -t public public/router.php
 Open http://localhost:8000 - you should see an empty transaction list.
 **Test the import:** Try importing the sample CSV from `sample-data/fuel_transactions.csv`
 
-## Your Task
+## Your Tasks
 
-### 1. Implement `/rpc/transaction/enrich` endpoint
+### 1. Implement enrichment endpoints
 
-Create an RPC endpoint that enriches a single transaction with GPS data from the Mapon API.
+Create two RPC endpoints that enrich fuel transactions with GPS data from the Mapon API. See [Mapon API Reference](#mapon-api-reference) below for API details.
 
-**Input:**
-- `id` (int, required) - Transaction ID to enrich
+**`/rpc/transaction/enrich`** - Single transaction enrichment
 
-**Behavior:**
-1. Fetch the transaction from database
-2. Call Mapon API to get GPS position at the transaction time
-3. Update the transaction with coordinates and odometer
-4. Update enrichment status appropriately
+- **Input:** `id` (int, required) - Transaction ID to enrich
+- **Behavior:** Fetch the transaction, call Mapon API to get GPS position at the transaction time, update the transaction with coordinates, odometer, and enrichment status
+- **Output:** Return the enrichment result with the updated transaction data
 
-**Output:** Return the enrichment result with the updated transaction data.
+**`/rpc/transaction/enrichAll`** - Batch enrichment
 
-### 2. Implement `/rpc/transaction/enrichAll` endpoint
+- **Input:** `limit` (int, optional) - Maximum number of transactions to process
+- **Behavior:** Process transactions with `pending` enrichment status, handle partial failures gracefully, consider what happens with rate limits or API errors mid-batch
+- **Output:** Return a summary of the batch operation results
 
-Create an RPC endpoint that enriches multiple pending transactions in batch.
+**Requirements:**
+1. **Implement `MaponClient`** - Complete the stub to call the Mapon API
+2. **Create `Enrich.php` endpoint** - Single transaction enrichment
+3. **Create `EnrichAll.php` endpoint** - Batch enrichment with proper error handling
+4. **Handle edge cases gracefully** - Think about what can go wrong
 
-**Input:**
-- `limit` (int, optional) - Maximum number of transactions to process
+### 2. Review the existing codebase
 
-**Behavior:**
-- Process transactions with `pending` enrichment status
-- Handle partial failures gracefully
-- Consider what happens with rate limits or API errors mid-batch
+This is an equally important part of the assignment. As you work through the implementation, critically evaluate the existing code as if you were onboarding onto a real project. We expect you to identify real issues and form opinions.
 
-**Output:** Return a summary of the batch operation results.
+Take note of:
+- **Bugs or incorrect behavior** - Does the existing code work correctly? Are there logic errors, missing validations, or broken flows?
+- **Data quality concerns** - Does the imported data look right? Are there records that shouldn't be there?
+- **Code smells and maintainability** - Are there patterns that would cause problems at scale? Hardcoded values, overly complex logic, mixed responsibilities?
+- **Naming and structure** - Does the project organization make sense? Are things named clearly and consistently?
+- **Security concerns** - Is there anything that wouldn't be acceptable in a production environment?
+- **How you'd approach it differently** - If you were building this from scratch or taking ownership, what would you change?
+
+Write these observations in your `NOTES.md` - we value honest, thoughtful critique. We'll discuss them in the follow-up interview.
+
+### Bonus (Optional)
+
+**Duplicate prevention:** The current import allows the same CSV to be imported multiple times, creating duplicate transactions. Implement logic to detect and skip duplicates during import.
+
+Consider: What fields define a "duplicate" transaction?
+
+---
+
+## Mapon API Reference
 
 ### What's Already Provided
 
@@ -79,7 +97,7 @@ Create an RPC endpoint that enriches multiple pending transactions in batch.
 - Transaction model with enrichment helper methods
 - `Vehicle` model with lookup helpers
 
-### Mapon API Details
+### API Details
 
 **Documentation:** https://mapon.com/api/
 
@@ -106,56 +124,42 @@ GET https://mapon.com/api/v1/unit_data/history_point.json?key=YOUR_API_KEY&unit_
 - Returns `401` for invalid API key
 - Response contains position coordinates and mileage data - refer to Mapon documentation for structure
 
-### Requirements
-
-1. **Implement `MaponClient`** - Complete the stub to call the Mapon API
-2. **Create `Enrich.php` endpoint** - Single transaction enrichment
-3. **Create `EnrichAll.php` endpoint** - Batch enrichment with proper error handling
-4. **Handle edge cases gracefully** - Think about what can go wrong
-
-### 3. Review the existing codebase
-
-As you work through the implementation, take note of:
-- Issues or bugs you encounter in the existing code
-- Patterns or conventions you'd change
-- Architectural decisions you agree or disagree with
-- Anything that surprised you (good or bad)
-
-Write these observations in your `NOTES.md` - we'll discuss them in the follow-up interview.
-
-### Bonus (Optional)
-
-**Duplicate prevention:** The current import allows the same CSV to be imported multiple times, creating duplicate transactions. Implement logic to detect and skip duplicates during import.
-
-Consider: What fields define a "duplicate" transaction?
-
 ### Hints
 
 - Look at existing code in `src/Rpc/Section/Transaction/` for patterns
 - The transaction model has helper methods you might find useful
 - The frontend has buttons to test your endpoints
 
+---
+
 ## Things to Think About
 
-Beyond the implementation, consider these questions (we'll discuss in the interview):
+Beyond the implementation, we expect you to form opinions about the project as a whole. Think of this as a code review of an inherited codebase - we want to hear your honest assessment.
 
+**Implementation concerns:**
 - **Batch processing**: How do you handle failures mid-batch? Stop everything or continue?
 - **Reliability**: What happens if the Mapon API is slow, returns errors, or times out?
 - **Idempotency**: What if someone calls enrich twice on the same transaction?
 - **Testing**: How would you test the Mapon integration without hitting the real API?
-- **Code review**: Take a look at the existing import flow (`ImportService`). What would you improve? Are there any issues or patterns you'd change?
-- **Codebase structure**: What do you think about the current directory structure and naming conventions? What would you change?
 
-You don't need to implement all of these - just be prepared to discuss your thoughts.
+**Codebase critique (we especially value your thoughts here):**
+- **Import flow**: Look at the `ImportService` closely. Does it behave correctly? Are there issues with the data it produces? What patterns would you change?
+- **Data integrity**: After importing the sample CSV, does the data look correct? Are there records that seem wrong or unexpected?
+- **Project structure**: What do you think about how the code is organized - directory structure, naming conventions, separation of concerns?
+- **Security**: Are there any security concerns you'd flag if this were heading to production?
+- **Overall architecture**: If you were taking ownership of this project, what are the first things you'd want to fix or refactor?
+
+These observations are a significant part of what we assess. Write your findings in `NOTES.md` - be specific and honest.
 
 ## Submission
 
 1. Create a git repository with your changes
-2. Include a brief NOTES.md with:
+2. Include a `NOTES.md` with:
    - How to test your implementation
    - Any assumptions you made
    - Architectural considerations and trade-offs
-   - What you'd improve with more time
+   - **Issues you found** in the existing codebase (bugs, code smells, security concerns, data quality problems)
+   - **What you'd change** if you were taking ownership of the project
 
 ## What Happens Next
 
