@@ -52,4 +52,4 @@ CREATE TABLE vehicles (
 
 -- Transaction indexes
 CREATE INDEX idx_vehicles_vehicle_number ON vehicles(vehicle_number);
-CREATE INDEX idx_transactions_mapon_unit_id ON transactions(mapon_unit_id);
+CREATE INDEX idx_vehicles_mapon_unit_id ON transactions(mapon_unit_id);
