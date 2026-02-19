@@ -22,7 +22,14 @@ class ImportService
 {
     private TransactionRepository $repository;
 
-    private const NON_FUEL_PRODUCTS = [];
+    private const FUEL_PRODUCTS = [
+        'Diesel',
+        'AdBlue',
+        'Super 98',
+        'CNG',
+        'Super 95',
+        'Fuel',
+    ];
 
     public function __construct()
     {
@@ -87,7 +94,7 @@ class ImportService
     {
         // Get raw product first to check if we should skip
         $rawProduct = $this->getFieldOrDefault($row, $headerMap, 'Product', '');
-        if ($this->isNonFuelProduct($rawProduct)) {
+        if (!$this->isFuelProduct($rawProduct)) {
             return null;
         }
 
@@ -175,12 +182,14 @@ class ImportService
     /**
      * Check if a product is non-fuel and should be skipped.
      */
-    private function isNonFuelProduct(string $product): bool
+    private function isFuelProduct(string $product): bool
     {
-        $normalized = strtolower(trim($product));
+        $normalizedProduct = strtolower(trim($product));
 
-        foreach (self::NON_FUEL_PRODUCTS as $nonFuel) {
-            if (str_contains($normalized, $nonFuel)) {
+        foreach (self::FUEL_PRODUCTS as $fuel) {
+            $normalizedFuel = strtolower(trim($fuel));
+
+            if (str_contains($normalizedProduct, $normalizedFuel)) {
                 return true;
             }
         }

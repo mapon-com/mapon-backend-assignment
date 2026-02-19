@@ -32,8 +32,6 @@ use App\Rpc\Section\Base;
  */
 class RPC
 {
-    private ?string $error = null;
-
     public function handle(): string
     {
         try {

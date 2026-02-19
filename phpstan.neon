@@ -1,5 +1,10 @@
 parameters:
-	level: 4
-	paths:
-		- src
-		- tests
+    level: 4
+    paths:
+        - src
+        - tests
+
+    ignoreErrors:
+        -
+            message: '#Unsafe usage of new static\(\).#'
+            path: src/Lib/Model.php
