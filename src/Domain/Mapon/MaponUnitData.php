@@ -14,6 +14,5 @@ readonly class MaponUnitData
         public float $longitude,
         public ?int $odometer,
         public string $datetime,
-    ) {
-    }
+    ) {}
 }

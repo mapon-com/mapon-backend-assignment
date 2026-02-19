@@ -10,7 +10,5 @@ namespace App\Domain\Mapon;
  */
 class MaponClient
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

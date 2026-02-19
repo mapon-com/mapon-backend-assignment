@@ -76,9 +76,9 @@ class ImportServiceTest extends TestCase
 
         $this->assertEquals('EUR', $transaction->currency);
         $this->assertEquals('PLN', $transaction->original_currency);
-        $this->assertEquals(310.00, (float)$transaction->original_amount);
+        $this->assertEquals(310.00, (float) $transaction->original_amount);
         // PLN rate is 0.22, so 310 * 0.22 = 68.20
-        $this->assertEquals(68.20, (float)$transaction->total_amount);
+        $this->assertEquals(68.20, (float) $transaction->total_amount);
     }
 
     public function testImportProductTypeMapping(): void
