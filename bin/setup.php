@@ -13,15 +13,11 @@ use App\Lib\DB;
 
 echo "Setting up Fuel API database...\n";
 
-$driver = $_ENV['DB_DRIVER'] ?? 'sqlite';
-echo "Using driver: {$driver}\n";
-
-$schema = getSchema($driver);
 try {
     $pdo = DB::connection();
 
     $statements = array_filter(
-        array_map('trim', explode(';', $schema)),
+        array_map('trim', explode(';', getSchema())),
         fn($s) => !empty($s)
     );
 
@@ -40,54 +36,15 @@ try {
     exit(1);
 }
 
-function getSchema(string $driver): string
+function getSchema(): string
 {
-    $autoIncrement = $driver === 'sqlite' ? 'AUTOINCREMENT' : 'AUTO_INCREMENT';
-    $dateTimeType = $driver === 'sqlite' ? 'TEXT' : 'DATETIME';
+    // Read schema from ../schema.sql
+    $schemaPath = dirname(__DIR__) . '/schema.sql';
+    if (!file_exists($schemaPath)) {
+        throw new RuntimeException("Schema file not found: $schemaPath");
+    }
+    return file_get_contents($schemaPath);
 
-    return <<<SQL
--- Vehicles table (vehicle registration -> Mapon unit ID mapping)
-DROP TABLE IF EXISTS vehicles;
-
-CREATE TABLE vehicles (
-    id INTEGER PRIMARY KEY {$autoIncrement},
-    vehicle_number VARCHAR(20) NOT NULL UNIQUE,
-    mapon_unit_id INTEGER,
-    created_at {$dateTimeType}
-);
-
--- Transactions table
-DROP TABLE IF EXISTS transactions;
-
-CREATE TABLE transactions (
-    id INTEGER PRIMARY KEY {$autoIncrement},
-    vehicle_number VARCHAR(20) NOT NULL,
-    card_number VARCHAR(50),
-    transaction_date {$dateTimeType} NOT NULL,
-    station_name VARCHAR(255),
-    station_country VARCHAR(10),
-    product_type VARCHAR(50) NOT NULL,
-    quantity DECIMAL(10, 3) NOT NULL,
-    unit VARCHAR(10) DEFAULT 'L',
-    unit_price DECIMAL(10, 4),
-    total_amount DECIMAL(10, 2) NOT NULL,
-    currency VARCHAR(3) DEFAULT 'EUR',
-    original_currency VARCHAR(3),
-    original_amount DECIMAL(10, 2),
-    mapon_unit_id INTEGER,
-    enrichment_status VARCHAR(20) DEFAULT 'pending',
-    gps_latitude DECIMAL(10, 7),
-    gps_longitude DECIMAL(10, 7),
-    odometer_gps INTEGER,
-    enriched_at {$dateTimeType},
-    import_batch_id VARCHAR(100),
-    created_at {$dateTimeType},
-    updated_at {$dateTimeType}
-);
-
--- CREATE INDEX idx_transactions_vehicle ON transactions(vehicle_number);
--- CREATE INDEX idx_transactions_date ON transactions(transaction_date);
-SQL;
 }
 
 function seedVehicles(): void

@@ -1,6 +1,7 @@
 -- Fuel Transaction API Schema
 -- This file is for reference only. The actual schema is created by bin/setup.php
 
+DROP TABLE IF EXISTS transactions;
 CREATE TABLE transactions (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     vehicle_number VARCHAR(20) NOT NULL,  -- Vehicle registration number (e.g., "JR-2222")
@@ -31,17 +32,24 @@ CREATE TABLE transactions (
     import_batch_id VARCHAR(100),
     created_at DATETIME,
     updated_at DATETIME
-
-    -- Note: Consider adding indexes for frequently queried columns:
-    -- INDEX idx_vehicle_number (vehicle_number),
-    -- INDEX idx_transaction_date (transaction_date),
-    -- INDEX idx_enrichment_status (enrichment_status)
 );
 
+-- Transaction indexes
+CREATE INDEX idx_transactions_vehicle ON transactions(vehicle_number);
+CREATE INDEX idx_transactions_mapon_unit_id ON transactions(mapon_unit_id);
+CREATE INDEX idx_transactions_card ON transactions(card_number);
+CREATE INDEX idx_transactions_date ON transactions(transaction_date);
+
 -- Vehicle mapping table (vehicle registration -> Mapon unit ID)
+
+DROP TABLE IF EXISTS vehicles;
 CREATE TABLE vehicles (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     vehicle_number VARCHAR(20) NOT NULL UNIQUE,
     mapon_unit_id INTEGER,
     created_at DATETIME
 );
+
+-- Transaction indexes
+CREATE INDEX idx_vehicles_vehicle_number ON vehicles(vehicle_number);
+CREATE INDEX idx_transactions_mapon_unit_id ON transactions(mapon_unit_id);
