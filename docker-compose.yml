@@ -4,16 +4,24 @@ services:
   app:
     build: .
     ports:
-      - "8000:8000"
+      - "80:80"
     volumes:
       - .:/app
     environment:
-      - DB_DRIVER=mysql
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_NAME=fuel_api
-      - DB_USER=root
-      - DB_PASS=secret
+      - APP_ENV=dev
+    depends_on:
+      db:
+        condition: service_healthy
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: secret
     depends_on:
       db:
         condition: service_healthy

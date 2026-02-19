@@ -13,8 +13,17 @@ use App\Rpc\RPC;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+// Determine which .env file to load based on APP_ENV
+$env = getenv('APP_ENV') ?: 'dev';
+$envFile = '.env.' . $env;
+
+// Always load base .env first if it exists
 $dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__, 2));
 $dotenv->safeLoad();
+
+// Then load environment-specific .env file if it exists
+$dotenvEnv = Dotenv\Dotenv::createImmutable(dirname(__DIR__, 2), $envFile);
+$dotenvEnv->safeLoad();
 
 header('Content-Type: application/json');
 
